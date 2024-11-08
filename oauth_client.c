@@ -5,22 +5,20 @@
  */
 
 #include "oauth.h"
-
+#include "library/utils.h"
 
 void
 oauth_prog_1(char *host)
 {
 	CLIENT *clnt;
 	response  *result_1;
-	char * request_auth_token_1_arg = malloc(1000);
+	char * request_auth_token_1_arg = malloc;
 
-#ifndef	DEBUG
 	clnt = clnt_create (host, OAUTH_PROG, OAUTH_VERS, "udp");
 	if (clnt == NULL) {
 		clnt_pcreateerror (host);
 		exit (1);
 	}
-#endif	/* DEBUG */
 
 	result_1 = request_auth_token_1(&request_auth_token_1_arg, clnt);
 
@@ -29,14 +27,12 @@ oauth_prog_1(char *host)
 	if (result_1 == (response *) NULL) {
 		clnt_perror (clnt, "call failed");
 	}
-#ifndef	DEBUG
+
 	clnt_destroy (clnt);
-#endif	 /* DEBUG */
 }
 
 
-int
-main (int argc, char *argv[])
+int main (int argc, char *argv[])
 {
 	char *host;
 
@@ -45,6 +41,22 @@ main (int argc, char *argv[])
 		exit (1);
 	}
 	host = argv[1];
+
+	char file[20] = "client.in";
+
+	InputClient* inputClients;
+	int nrInputs = readInputClientFile(file, &inputClients);
+
+	printf("okoko\n");
+	for(int i=0; i< nrInputs; i++){
+		printf("%s\n", inputClients[i].id);
+		printf("%s\n", inputClients[i].command);
+		printf("%s\n", inputClients[i].arguments);
+		printf("\n");
+
+	}
+
+
 	oauth_prog_1 (host);
 exit (0);
 }
