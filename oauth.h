@@ -14,34 +14,65 @@ extern "C" {
 #endif
 
 
-struct response {
-	char *token;
+struct ResponseAuthToken {
+	char *header;
+	char *auth_token;
 };
-typedef struct response response;
+typedef struct ResponseAuthToken ResponseAuthToken;
+
+struct ResponseSignedToken {
+	char *header;
+	char *signed_token;
+};
+typedef struct ResponseSignedToken ResponseSignedToken;
+
+struct ResponseBearerToken {
+	char *header;
+	char *access_token;
+	char *refresh_token;
+	int ttl;
+};
+typedef struct ResponseBearerToken ResponseBearerToken;
 
 #define OAUTH_PROG 0x23451112
 #define OAUTH_VERS 1
 
 #if defined(__STDC__) || defined(__cplusplus)
 #define REQUEST_AUTH_TOKEN 1
-extern  response * request_auth_token_1(char **, CLIENT *);
-extern  response * request_auth_token_1_svc(char **, struct svc_req *);
+extern  ResponseAuthToken * request_auth_token_1(char **, CLIENT *);
+extern  ResponseAuthToken * request_auth_token_1_svc(char **, struct svc_req *);
+#define REQUEST_SIGNED_TOKEN 2
+extern  ResponseSignedToken * request_signed_token_1(char **, CLIENT *);
+extern  ResponseSignedToken * request_signed_token_1_svc(char **, struct svc_req *);
+#define REQUEST_BEARER_TOKEN 3
+extern  ResponseBearerToken * request_bearer_token_1(char **, CLIENT *);
+extern  ResponseBearerToken * request_bearer_token_1_svc(char **, struct svc_req *);
 extern int oauth_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
 #define REQUEST_AUTH_TOKEN 1
-extern  response * request_auth_token_1();
-extern  response * request_auth_token_1_svc();
+extern  ResponseAuthToken * request_auth_token_1();
+extern  ResponseAuthToken * request_auth_token_1_svc();
+#define REQUEST_SIGNED_TOKEN 2
+extern  ResponseSignedToken * request_signed_token_1();
+extern  ResponseSignedToken * request_signed_token_1_svc();
+#define REQUEST_BEARER_TOKEN 3
+extern  ResponseBearerToken * request_bearer_token_1();
+extern  ResponseBearerToken * request_bearer_token_1_svc();
 extern int oauth_prog_1_freeresult ();
 #endif /* K&R C */
 
 /* the xdr functions */
 
 #if defined(__STDC__) || defined(__cplusplus)
-extern  bool_t xdr_response (XDR *, response*);
+extern  bool_t xdr_ResponseAuthToken (XDR *, ResponseAuthToken*);
+extern  bool_t xdr_ResponseSignedToken (XDR *, ResponseSignedToken*);
+extern  bool_t xdr_ResponseBearerToken (XDR *, ResponseBearerToken*);
 
 #else /* K&R C */
-extern bool_t xdr_response ();
+extern bool_t xdr_ResponseAuthToken ();
+extern bool_t xdr_ResponseSignedToken ();
+extern bool_t xdr_ResponseBearerToken ();
 
 #endif /* K&R C */
 

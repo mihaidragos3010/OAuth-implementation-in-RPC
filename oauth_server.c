@@ -5,18 +5,51 @@
  */
 
 #include "oauth.h"
+#include "library/server/token.h"
+// #include "library/utils.h"
+#include <string.h>
 
-response *
-request_auth_token_1_svc(char **argp, struct svc_req *rqstp)
+ResponseAuthToken* request_auth_token_1_svc(char **argp, struct svc_req *rqstp)
 {
-	static response  result;
+	static ResponseAuthToken  result;
+	result.header = calloc(1, 20);
+	result.auth_token = calloc(1, TOKEN_LEN + 1);
 
-	/*
-	 * insert server code here
-	 */
+	char* idClient = argp[0];
+	char* auth_token = generate_access_token(idClient);
+	memcpy(result.auth_token, auth_token, TOKEN_LEN);
 
-	result.token = malloc(100);
-	memcpy(result.token, "abc", 4);
+	printf("%s\n", result.auth_token);
+	return &result;
+}
+
+ResponseSignedToken *
+request_signed_token_1_svc(char **argp, struct svc_req *rqstp)
+{
+	static ResponseSignedToken  result;
+	result.header = calloc(1, 20);
+	result.signed_token = calloc(1, TOKEN_LEN + 5);
+	
+	char* auth_token = argp[0];
+	// printf("%s\n\n", auth_token);
+	memcpy(result.signed_token, auth_token, TOKEN_LEN);
+
+	return &result;
+}
+
+ResponseBearerToken *
+request_bearer_token_1_svc(char **argp, struct svc_req *rqstp)
+{
+	static ResponseBearerToken  result;
+	result.header = calloc(1, 20);
+	result.access_token = calloc(1, TOKEN_LEN + 1);
+	result.refresh_token = calloc(1, TOKEN_LEN + 1);
+	result.ttl = 5;
+	
+	char* signed_token = argp[0];
+	char* access_token = generate_access_token(signed_token);
+	memcpy(result.access_token, access_token, TOKEN_LEN);
+	printf("%s\n\n", result.access_token);
 
 	return &result;
 }

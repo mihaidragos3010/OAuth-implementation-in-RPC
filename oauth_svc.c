@@ -21,6 +21,8 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
 	union {
 		char *request_auth_token_1_arg;
+		char *request_signed_token_1_arg;
+		char *request_bearer_token_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -33,8 +35,20 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case REQUEST_AUTH_TOKEN:
 		_xdr_argument = (xdrproc_t) xdr_wrapstring;
-		_xdr_result = (xdrproc_t) xdr_response;
+		_xdr_result = (xdrproc_t) xdr_ResponseAuthToken;
 		local = (char *(*)(char *, struct svc_req *)) request_auth_token_1_svc;
+		break;
+
+	case REQUEST_SIGNED_TOKEN:
+		_xdr_argument = (xdrproc_t) xdr_wrapstring;
+		_xdr_result = (xdrproc_t) xdr_ResponseSignedToken;
+		local = (char *(*)(char *, struct svc_req *)) request_signed_token_1_svc;
+		break;
+
+	case REQUEST_BEARER_TOKEN:
+		_xdr_argument = (xdrproc_t) xdr_wrapstring;
+		_xdr_result = (xdrproc_t) xdr_ResponseBearerToken;
+		local = (char *(*)(char *, struct svc_req *)) request_bearer_token_1_svc;
 		break;
 
 	default:

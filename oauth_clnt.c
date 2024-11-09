@@ -9,15 +9,45 @@
 /* Default timeout can be changed using clnt_control() */
 static struct timeval TIMEOUT = { 25, 0 };
 
-response *
+ResponseAuthToken *
 request_auth_token_1(char **argp, CLIENT *clnt)
 {
-	static response clnt_res;
+	static ResponseAuthToken clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, REQUEST_AUTH_TOKEN,
 		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
-		(xdrproc_t) xdr_response, (caddr_t) &clnt_res,
+		(xdrproc_t) xdr_ResponseAuthToken, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+ResponseSignedToken *
+request_signed_token_1(char **argp, CLIENT *clnt)
+{
+	static ResponseSignedToken clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, REQUEST_SIGNED_TOKEN,
+		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+		(xdrproc_t) xdr_ResponseSignedToken, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+ResponseBearerToken *
+request_bearer_token_1(char **argp, CLIENT *clnt)
+{
+	static ResponseBearerToken clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, REQUEST_BEARER_TOKEN,
+		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+		(xdrproc_t) xdr_ResponseBearerToken, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);
 	}

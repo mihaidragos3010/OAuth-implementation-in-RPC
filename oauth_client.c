@@ -5,14 +5,11 @@
  */
 
 #include "oauth.h"
-#include "library/utils.h"
+#include "library/client/utils.h"
 
-void
-oauth_prog_1(char *host)
-{
+void oauth_prog_1(char *host, char* idClient){
+
 	CLIENT *clnt;
-	response  *result_1;
-	char * request_auth_token_1_arg = malloc;
 
 	clnt = clnt_create (host, OAUTH_PROG, OAUTH_VERS, "udp");
 	if (clnt == NULL) {
@@ -20,20 +17,19 @@ oauth_prog_1(char *host)
 		exit (1);
 	}
 
-	result_1 = request_auth_token_1(&request_auth_token_1_arg, clnt);
+	ResponseAuthToken  *response_auth_token = request_auth_token_1(&idClient, clnt);
+	// printf("%s\n\n", response_auth_token->auth_token);
 
-	printf("%s\n", result_1->token);
+	ResponseSignedToken  *response_signed_token = request_signed_token_1(&response_auth_token->auth_token, clnt);
+	// printf("%s\n\n", response_signed_token->signed_token);
 
-	if (result_1 == (response *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-
+	ResponseBearerToken  *response_bearer_token = request_bearer_token_1(&response_signed_token->signed_token, clnt);
+	printf("%s\n\n", response_bearer_token->access_token);
 	clnt_destroy (clnt);
 }
 
 
-int main (int argc, char *argv[])
-{
+int main (int argc, char *argv[]){
 
 	if (argc < 3) {
 		printf ("Client need host and input file as arguments!!");
@@ -50,8 +46,9 @@ int main (int argc, char *argv[])
 
 		InputClient input = inputClients[i];
 
-		if(strchr(input.command, "REQUEST") == 0){
-			oauth_prog_1 (host);
+		if(strcmp(input.command, "REQUEST") == 0){
+			printf("%s\n", input.id);
+			oauth_prog_1(host, input.id);
 		}
 
 		// if(strchr(input.command, "READ") == 0){

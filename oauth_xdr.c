@@ -6,11 +6,41 @@
 #include "oauth.h"
 
 bool_t
-xdr_response (XDR *xdrs, response *objp)
+xdr_ResponseAuthToken (XDR *xdrs, ResponseAuthToken *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_string (xdrs, &objp->token, ~0))
+	 if (!xdr_string (xdrs, &objp->header, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->auth_token, ~0))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ResponseSignedToken (XDR *xdrs, ResponseSignedToken *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->header, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->signed_token, ~0))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ResponseBearerToken (XDR *xdrs, ResponseBearerToken *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->header, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->access_token, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->refresh_token, ~0))
+		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->ttl))
 		 return FALSE;
 	return TRUE;
 }
