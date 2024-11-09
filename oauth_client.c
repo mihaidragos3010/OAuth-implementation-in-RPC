@@ -34,29 +34,47 @@ oauth_prog_1(char *host)
 
 int main (int argc, char *argv[])
 {
-	char *host;
 
-	if (argc < 2) {
-		printf ("usage: %s server_host\n", argv[0]);
+	if (argc < 3) {
+		printf ("Client need host and input file as arguments!!");
 		exit (1);
 	}
-	host = argv[1];
-
-	char file[20] = "client.in";
+	
+	char* host = argv[1];
+	char* file = argv[2];
 
 	InputClient* inputClients;
 	int nrInputs = readInputClientFile(file, &inputClients);
 
-	printf("okoko\n");
-	for(int i=0; i< nrInputs; i++){
-		printf("%s\n", inputClients[i].id);
-		printf("%s\n", inputClients[i].command);
-		printf("%s\n", inputClients[i].arguments);
-		printf("\n");
+	for(int i=0; i<nrInputs; i++){
+
+		InputClient input = inputClients[i];
+
+		if(strchr(input.command, "REQUEST") == 0){
+			oauth_prog_1 (host);
+		}
+
+		// if(strchr(input.command, "READ") == 0){
+		// 	oauth_prog_1 (host);
+		// }
+
+		// if(strchr(input.command, "MODIFY") == 0){
+		// 	oauth_prog_1 (host);
+		// }
+
+		// if(strchr(input.command, "INSERT") == 0){
+		// 	oauth_prog_1 (host);
+		// }
+
+		// if(strchr(input.command, "EXECUTE") == 0){
+		// 	oauth_prog_1 (host);
+		// }
+
+		// if(strchr(input.command, "DELETE") == 0){
+		// 	oauth_prog_1 (host);
+		// }
 
 	}
 
-
-	oauth_prog_1 (host);
 exit (0);
 }

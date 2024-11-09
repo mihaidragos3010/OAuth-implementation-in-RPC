@@ -4,12 +4,14 @@
 
 #define MAX_INPUT_CLIENT_COMMAND 100
 #define MAX_INPUT_COMMAND_LENGTH 256
-#define MAX_COMMAND_LENGTH 20
+#define ID_SIZE 16
+#define COMMAND_SIZE 21
+#define ARGUMENTS_SIZE 21
 
 typedef struct {
-    char id[50];
-    char command[50];
-    char arguments[50];
+    char id[ID_SIZE];
+    char command[COMMAND_SIZE];
+    char arguments[ARGUMENTS_SIZE];
 } InputClient;
 
 

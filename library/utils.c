@@ -1,6 +1,7 @@
 #include "utils.h"
 
-
+// Function get path of client input filename and create a struct that contains parsed information
+// It retunrs number of inputs
 int readInputClientFile(char* filename, InputClient** inputs) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -40,5 +41,5 @@ int readInputClientFile(char* filename, InputClient** inputs) {
     }
 
     fclose(file);
-    return index;  // Return the number of successfully read input clients
+    return index;
 }
