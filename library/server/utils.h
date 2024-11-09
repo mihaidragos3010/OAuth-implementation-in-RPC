@@ -19,5 +19,5 @@ typedef struct {
 int readUsersAllowed(char* filename, char*** users);
 
 void removeNewline(char* str);
-int readPermissionsFile(char* filename, Permission** permissions);
-Permission* getNextPossiblePermission(Permission *permissions, int length);
+int readPermissionsFile(char* filename, Permission*** permissions);
+Permission* getNextPossiblePermission(Permission **permissions, int length);

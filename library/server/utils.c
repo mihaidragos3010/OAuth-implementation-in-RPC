@@ -32,7 +32,6 @@ int readUsersAllowed(char* filename, char*** users) {
     return nrUsers;
 }
 
-
 void removeNewline(char* str) {
     int i = 0, j = 0;
     while (str[i]) {
@@ -45,14 +44,14 @@ void removeNewline(char* str) {
 }
 
 
-int readPermissionsFile(char* filename, Permission** permissions){
+int readPermissionsFile(char* filename, Permission*** permissions){
 
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Unable to open the file");
     }
 
-    (*permissions) = calloc(100, sizeof(Permission));
+    (*permissions) = calloc(10, sizeof(Permission**));
 
     if (*permissions == NULL) {
         perror("Failed to allocate memory for output array");
@@ -60,12 +59,16 @@ int readPermissionsFile(char* filename, Permission** permissions){
     }
 
 
-    int index = 0;
+    int row = 0;
     char* line = NULL;
     size_t len;
     while (getline(&line, &len, file) != -1) {
 
-		removeNewline(line);      
+		removeNewline(line);
+
+        int column = 0;
+        (*permissions)[row] = calloc(10, sizeof(Permission));
+        
 
         char *token = NULL;
         do{
@@ -76,34 +79,31 @@ int readPermissionsFile(char* filename, Permission** permissions){
                 token = strtok(NULL, ",");
 
             if(token != NULL)
-                strcpy((*permissions)[index].file, token);
+                strcpy((*permissions)[row][column].file, token);
 
             token = strtok(NULL, ",");
             if(token != NULL)
-                strcpy((*permissions)[index].rights, token);
-        
-            if(token != NULL)
-                index++;
+                strcpy((*permissions)[row][column].rights, token);
+
+            column++;
 
         }while (token != NULL);
         
+        row++;
     }
 
     fclose(file);
 
-    return index;
+    return row;
 }
 
 static int indexGlobalPermissions = 0;
-Permission* getNextPossiblePermission(Permission *permissions, int length) {
-    
+Permission* getNextPossiblePermission(Permission **permissions, int length) {
     
     if(indexGlobalPermissions < length){
-        Permission *permission = calloc(1, sizeof(Permission));
-        memcpy(permission, &(permissions[indexGlobalPermissions]), sizeof(Permission));
-        indexGlobalPermissions++;
-        return permission;
+        return permissions[indexGlobalPermissions++];
     }
     
     return NULL;
 }
+

@@ -40,13 +40,16 @@ request_signed_token_1_svc(char **argp, struct svc_req *rqstp)
 
 	// printf("%s\n\n", auth_token);
 
-	Permission *permissions;
+	Permission **permissions;
 	int nr = readPermissionsFile("approvals.db", &permissions);
+
+	// printf("%s\n", permissions[4][2].file);
+	// printf("%s\n", permissions[4][2].rights);
 
 	Permission *permission = getNextPossiblePermission(permissions, nr);
 	
-	printf("%s\n", permission->file);
-	printf("%s\n", permission->rights);
+	printf("%s\n", permission[1].file);
+	printf("%s\n", permission[1].rights);
 
 	return &result;
 }
