@@ -7,11 +7,11 @@ gen:
 
 # Target to compile the server and client
 build:
-	gcc -o server oauth_server.c oauth_svc.c oauth_xdr.c -ltirpc -I/usr/include/tirpc -g
+	gcc -o server oauth_server.c oauth_svc.c oauth_xdr.c library/server/utils.c -ltirpc -I/usr/include/tirpc -g
 	gcc -o client oauth_client.c oauth_clnt.c oauth_xdr.c library/client/utils.c  -ltirpc -I/usr/include/tirpc -g
 
 run_server:
-	./server
+	./server userID.db
 
 run_client:
 	./client localhost client.in

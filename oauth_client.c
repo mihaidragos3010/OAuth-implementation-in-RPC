@@ -47,7 +47,7 @@ int main (int argc, char *argv[]){
 		InputClient input = inputClients[i];
 
 		if(strcmp(input.command, "REQUEST") == 0){
-			printf("%s\n", input.id);
+
 			oauth_prog_1(host, input.id);
 		}
 

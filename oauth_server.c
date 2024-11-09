@@ -6,8 +6,7 @@
 
 #include "oauth.h"
 #include "library/server/token.h"
-// #include "library/utils.h"
-#include <string.h>
+#include "library/server/utils.h"
 
 ResponseAuthToken* request_auth_token_1_svc(char **argp, struct svc_req *rqstp)
 {
@@ -19,7 +18,13 @@ ResponseAuthToken* request_auth_token_1_svc(char **argp, struct svc_req *rqstp)
 	char* auth_token = generate_access_token(idClient);
 	memcpy(result.auth_token, auth_token, TOKEN_LEN);
 
-	printf("%s\n", result.auth_token);
+	// printf("%s\n", result.auth_token);
+
+	// char **users;
+	// int nrUsers = readUsersAllowed("userIDs.db", &users);
+
+	
+
 	return &result;
 }
 
@@ -31,8 +36,17 @@ request_signed_token_1_svc(char **argp, struct svc_req *rqstp)
 	result.signed_token = calloc(1, TOKEN_LEN + 5);
 	
 	char* auth_token = argp[0];
-	// printf("%s\n\n", auth_token);
 	memcpy(result.signed_token, auth_token, TOKEN_LEN);
+
+	// printf("%s\n\n", auth_token);
+
+	Permission *permissions;
+	int nr = readPermissionsFile("approvals.db", &permissions);
+
+	Permission *permission = getNextPossiblePermission(permissions, nr);
+	
+	printf("%s\n", permission->file);
+	printf("%s\n", permission->rights);
 
 	return &result;
 }
@@ -49,7 +63,7 @@ request_bearer_token_1_svc(char **argp, struct svc_req *rqstp)
 	char* signed_token = argp[0];
 	char* access_token = generate_access_token(signed_token);
 	memcpy(result.access_token, access_token, TOKEN_LEN);
-	printf("%s\n\n", result.access_token);
+	// printf("%s\n\n", result.access_token);
 
 	return &result;
 }
