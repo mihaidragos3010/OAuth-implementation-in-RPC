@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_USERS 100
 #define MAX_USED_ID_LENGTH 16
@@ -16,14 +17,24 @@ typedef struct {
     char rights[MAX_RIGHTS + 1];
 } Permission;
 
+typedef struct {
+    char *id;
+    char *access_token;
+    char *refresh_token;
+    int ttl;
+    Permission *permissions;
+} User;
 
-int readUsersAllowed(char* filename, char*** users);
 
+void readUsersAllowed(char* filename);
 void removeNewline(char* str);
-int readPermissionsFile(char* filename, Permission*** permissions);
-Permission* getNextPossiblePermission(Permission **permissions, int length);
+void readPermissionsFile(char* filename);
+
+Permission* getNextPossiblePermission();
 char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPermissions);
 void generateSecretKey();
 char* encrypt(char* data);
 char* decrypt(char* data);
-int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Permission **permissions);
+int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Permission **clientPermissions);
+bool isIdAllowed(char* idClient);
+bool isAcceptedByUsed(Permission* clientPermissions);

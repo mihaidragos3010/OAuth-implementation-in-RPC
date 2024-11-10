@@ -1,35 +1,42 @@
 #include "utils.h"
 
+extern User *users;
+extern int nrUsers;
 
-int readUsersAllowed(char* filename, char*** users) {
+extern Permission **permissions;
+extern int nrPermissions;
+
+void readUsersAllowed(char* filename) {
 
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Unable to open the file");
-        return -1;
+        return;
     }
 
     char line[MAX_USED_ID_LENGTH];
     fgets(line, sizeof(line), file);
-    int nrUsers = atoi(line);
+    nrUsers = atoi(line);
 
-    (*users) = calloc(nrUsers, sizeof(char*));
+    users = calloc(nrUsers, sizeof(User));
 
     int index = 0;
     while (fgets(line, sizeof(line), file)) {
 
-        (*users)[index] = calloc(1, MAX_USED_ID_LENGTH);
-        memcpy((*users)[index], line, MAX_USED_ID_LENGTH-1);
-        (*users)[index][MAX_USED_ID_LENGTH - 1] = '\0';
+        users[index].id = calloc(1, MAX_USED_ID_LENGTH);
+        memcpy(users[index].id, line, MAX_USED_ID_LENGTH-1);
+        users[index].id[MAX_USED_ID_LENGTH - 1] = '\0';
 
+        users[index].access_token = calloc(1, MAX_USED_ID_LENGTH);
+        users[index].refresh_token = calloc(1, MAX_USED_ID_LENGTH);
+        users[index].permissions = calloc(10, sizeof(Permission));
+        
         fgets(line, sizeof(line), file);
         
         index++;
     }
 
     fclose(file);
-
-    return nrUsers;
 }
 
 void removeNewline(char* str) {
@@ -44,16 +51,16 @@ void removeNewline(char* str) {
 }
 
 
-int readPermissionsFile(char* filename, Permission*** permissions){
+void readPermissionsFile(char* filename){
 
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Unable to open the file");
     }
 
-    (*permissions) = calloc(10, sizeof(Permission**));
+    permissions = calloc(10, sizeof(Permission**));
 
-    if (*permissions == NULL) {
+    if (permissions == NULL) {
         perror("Failed to allocate memory for output array");
         fclose(file);
     }
@@ -67,7 +74,7 @@ int readPermissionsFile(char* filename, Permission*** permissions){
 		removeNewline(line);
 
         int column = 0;
-        (*permissions)[row] = calloc(10, sizeof(Permission));
+        permissions[row] = calloc(10, sizeof(Permission));
         
 
         char *token = NULL;
@@ -79,11 +86,11 @@ int readPermissionsFile(char* filename, Permission*** permissions){
                 token = strtok(NULL, ",");
 
             if(token != NULL)
-                strcpy((*permissions)[row][column].file, token);
+                strcpy(permissions[row][column].file, token);
 
             token = strtok(NULL, ",");
             if(token != NULL)
-                strcpy((*permissions)[row][column].rights, token);
+                strcpy(permissions[row][column].rights, token);
 
             column++;
 
@@ -92,15 +99,15 @@ int readPermissionsFile(char* filename, Permission*** permissions){
         row++;
     }
 
-    fclose(file);
+    nrPermissions = row;
 
-    return row;
+    fclose(file);
 }
 
 static int indexGlobalPermissions = 0;
-Permission* getNextPossiblePermission(Permission **permissions, int length) {
+Permission* getNextPossiblePermission() {
     
-    if(indexGlobalPermissions < length){
+    if(indexGlobalPermissions < nrPermissions){
         return permissions[indexGlobalPermissions++];
     }
     
@@ -129,7 +136,7 @@ char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPe
 
 static int key;
 void generateSecretKey(){
-    key = rand() % 15;
+    key = 15;
 }
 
 char* encrypt(char* data){
@@ -151,27 +158,42 @@ char* decrypt(char* data){
     return data;
 }
 
-int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Permission **permissions){
+int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Permission **clientPermissions){
 
     char *token = strtok(unsigned_token, ",");
     (*auth_token) = calloc(1, TOKEN_LEN + 1);
     memcpy((*auth_token), token, TOKEN_LEN);
 
-    (*permissions) = calloc(10, sizeof(Permission));
+    (*clientPermissions) = calloc(10, sizeof(Permission));
 
     int index = 0;
     do{
         token = strtok(NULL, ",");
         if(token != NULL)
-            strcpy((*permissions)[index].file, token);
+            strcpy((*clientPermissions)[index].file, token);
 
         token = strtok(NULL, ",");
         if(token != NULL)
-            strcpy((*permissions)[index].rights, token);
+            strcpy((*clientPermissions)[index].rights, token);
         
         index++;
     }
     while(token != NULL);
 
     return index - 1;
+}
+
+bool isIdAllowed(char* idClient){
+
+    for(int i=0; i < nrUsers; i++)
+        if(strcmp(idClient, users[i].id) == 0)
+            return true;
+
+    return false;
+}
+
+bool isAcceptedByUsed(Permission* clientPermissions){
+
+    return strcmp(clientPermissions[0].file, "*") != 0 
+        || strcmp(clientPermissions[0].rights, "-") != 0;
 }

@@ -11,6 +11,7 @@
 #include <memory.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "library/server/utils.h"
 
 #ifndef SIG_PF
 #define SIG_PF void(*)(int)
@@ -98,6 +99,14 @@ main (int argc, char **argv)
 		exit(1);
 	}
 
+	// ---------------------------------
+
+	readUsersAllowed("userIDs.db");
+	readPermissionsFile("approvals.db");
+	generateSecretKey();
+
+	// ---------------------------------
+	
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");
 	exit (1);

@@ -8,46 +8,42 @@
 #include "library/server/token.h"
 #include "library/server/utils.h"
 
+char **users;
+int nrUsers;
+Permission **permissions;
+int nrPermissions;
+
 ResponseAuthToken* request_auth_token_1_svc(char **argp, struct svc_req *rqstp)
 {
 	static ResponseAuthToken  result;
-	result.header = calloc(1, 20);
-	result.auth_token = calloc(1, TOKEN_LEN + 1);
 
 	char* idClient = argp[0];
-	char* auth_token = generate_access_token(idClient);
-	memcpy(result.auth_token, auth_token, TOKEN_LEN);
 
-	// printf("%s\n", result.auth_token);
-
-	// char **users;
-	// int nrUsers = readUsersAllowed("userIDs.db", &users);
-
+	if(isIdAllowed(idClient)){
+		result.header = strdup("SUCCESS");
+		result.auth_token = generate_access_token(idClient);
+	}else{
+		result.header = strdup("USER_NOT_FOUND");
+	}
 	
-
 	return &result;
 }
 
 ResponseSignedToken* request_signed_token_1_svc(char **argp, struct svc_req *rqstp)
 {
 	static ResponseSignedToken  result;
-	result.header = calloc(1, 20);
-	result.signed_token = calloc(1, 200);
 	
 	char* auth_token = argp[0];
 
-	Permission **permissions;
-	int nr = readPermissionsFile("approvals.db", &permissions);
+	Permission *clientPermissions = getNextPossiblePermission(permissions, nrPermissions);
 
-	Permission *clientPermissions = getNextPossiblePermission(permissions, nr);
-
-	char *unsigned_token = appendAuthTokenAndClientPermissions(auth_token, clientPermissions);
-
-	generateSecretKey();
-
-	char *signed_token = encrypt(unsigned_token);
-
-	memcpy(result.signed_token, signed_token, strlen(signed_token));
+	if(isAcceptedByUsed(clientPermissions)){
+		result.header = strdup("SUCCESS");
+		char *unsigned_token = appendAuthTokenAndClientPermissions(auth_token, clientPermissions);
+		result.signed_token = encrypt(unsigned_token);
+	}else{
+		result.header = strdup("REQUEST_DENIED");
+	}
 
 	return &result;
 }
@@ -56,27 +52,23 @@ ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqs
 {
 	static ResponseBearerToken  result;
 	result.header = calloc(1, 20);
-	result.access_token = calloc(1, TOKEN_LEN + 1);
-	result.refresh_token = calloc(1, TOKEN_LEN + 1);
+	result.refresh_token = calloc(1, TOKEN_LEN);
 	result.ttl = 5;
 	
 	char* signed_token = argp[0];
 	char* unsigned_token = decrypt(signed_token);
-	// printf("%s\n\n", unsigned_token);
 
 	char *auth_token;
 	Permission *clientPermissions;
-	
 	int nr = getAuthTokenAndClientPermissions(unsigned_token, &auth_token, &clientPermissions);
 
-	// printf("|%s|\n", auth_token);
 	// printf("%d\n", nr);
 	// printf("|%s|\n", clientPermissions[0].file);
 	// printf("|%s|\n", clientPermissions[0].rights);
 
-	char* access_token = generate_access_token(auth_token);
-	memcpy(result.access_token, access_token, TOKEN_LEN);
-	// printf("%s\n\n", result.access_token);
+	printf("|%s|\n", auth_token);
+	result.access_token = generate_access_token(auth_token);
+	printf("|%s|\n\n", result.access_token);
 
 	return &result;
 }
