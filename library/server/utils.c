@@ -113,7 +113,6 @@ char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPe
 
     memcpy(result, auth_token, 15);
 
-    printf("ok\n");
     int i = 0;
     while(clientPermissions != NULL 
         && strlen(clientPermissions[i].file) > 0 
@@ -125,4 +124,54 @@ char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPe
     }
 
     return result;
+}
+
+
+static int key;
+void generateSecretKey(){
+    key = rand() % 15;
+}
+
+char* encrypt(char* data){
+
+
+    for(int i = 0; i < strlen(data); i++){
+        data[i] += key;
+    }
+
+    return data;
+}
+
+char* decrypt(char* data){
+
+    for(int i = 0; i < strlen(data); i++){
+         data[i] -= key;
+    }
+
+    return data;
+}
+
+int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Permission **permissions){
+
+    char *token = strtok(unsigned_token, ",");
+    (*auth_token) = calloc(1, TOKEN_LEN + 1);
+    memcpy((*auth_token), token, TOKEN_LEN);
+
+    (*permissions) = calloc(10, sizeof(Permission));
+
+    int index = 0;
+    do{
+        token = strtok(NULL, ",");
+        if(token != NULL)
+            strcpy((*permissions)[index].file, token);
+
+        token = strtok(NULL, ",");
+        if(token != NULL)
+            strcpy((*permissions)[index].rights, token);
+        
+        index++;
+    }
+    while(token != NULL);
+
+    return index - 1;
 }
