@@ -107,3 +107,22 @@ Permission* getNextPossiblePermission(Permission **permissions, int length) {
     return NULL;
 }
 
+char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPermissions){
+
+    char *result = calloc(1, sizeof(auth_token) + 10 * sizeof(Permission));
+
+    memcpy(result, auth_token, 15);
+
+    printf("ok\n");
+    int i = 0;
+    while(clientPermissions != NULL 
+        && strlen(clientPermissions[i].file) > 0 
+        && strlen(clientPermissions[i].rights) > 0){
+        
+        sprintf(result, "%s,%s,%s",result,clientPermissions[i].file, clientPermissions[i].rights);
+
+        i++;
+    }
+
+    return result;
+}

@@ -21,3 +21,4 @@ int readUsersAllowed(char* filename, char*** users);
 void removeNewline(char* str);
 int readPermissionsFile(char* filename, Permission*** permissions);
 Permission* getNextPossiblePermission(Permission **permissions, int length);
+char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPermissions);

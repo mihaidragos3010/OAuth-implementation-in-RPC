@@ -46,10 +46,14 @@ request_signed_token_1_svc(char **argp, struct svc_req *rqstp)
 	// printf("%s\n", permissions[4][2].file);
 	// printf("%s\n", permissions[4][2].rights);
 
-	Permission *permission = getNextPossiblePermission(permissions, nr);
+	Permission *clientPermissions = getNextPossiblePermission(permissions, nr);
 	
-	printf("%s\n", permission[1].file);
-	printf("%s\n", permission[1].rights);
+	// printf("%s\n", permission[1].file);
+	// printf("%s\n", permission[1].rights);
+
+	char *unsigned_token = appendAuthTokenAndClientPermissions(auth_token, clientPermissions);
+
+	printf("%s\n", unsigned_token);
 
 	return &result;
 }

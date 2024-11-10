@@ -18,13 +18,13 @@ void oauth_prog_1(char *host, char* idClient){
 	}
 
 	ResponseAuthToken  *response_auth_token = request_auth_token_1(&idClient, clnt);
-	// printf("%s\n\n", response_auth_token->auth_token);
+	printf("%s\n\n", response_auth_token->auth_token);
 
 	ResponseSignedToken  *response_signed_token = request_signed_token_1(&response_auth_token->auth_token, clnt);
 	// printf("%s\n\n", response_signed_token->signed_token);
 
 	ResponseBearerToken  *response_bearer_token = request_bearer_token_1(&response_signed_token->signed_token, clnt);
-	printf("%s\n\n", response_bearer_token->access_token);
+	// printf("%s\n\n", response_bearer_token->access_token);
 	clnt_destroy (clnt);
 }
 
