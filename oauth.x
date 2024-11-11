@@ -1,3 +1,8 @@
+struct RequestAuthToken{
+    string idClient<>;
+    bool isAutoRefreshActivated;
+};
+
 struct ResponseAuthToken{
     string header<>;
     string auth_token<>;
@@ -28,7 +33,7 @@ struct ResponseDatabaseAction{
 
 program OAUTH_PROG {
     version OAUTH_VERS {
-        ResponseAuthToken REQUEST_AUTH_TOKEN(string<>) = 1;
+        ResponseAuthToken REQUEST_AUTH_TOKEN(RequestAuthToken) = 1;
         ResponseSignedToken REQUEST_SIGNED_TOKEN(string<>) = 2;
         ResponseBearerToken REQUEST_BEARER_TOKEN(string<>) = 3;
         ResponseBearerToken REQUEST_NEW_BEARER_TOKEN(string<>) = 4;

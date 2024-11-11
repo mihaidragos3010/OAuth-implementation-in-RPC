@@ -14,6 +14,12 @@ extern "C" {
 #endif
 
 
+struct RequestAuthToken {
+	char *idClient;
+	bool_t isAutoRefreshActivated;
+};
+typedef struct RequestAuthToken RequestAuthToken;
+
 struct ResponseAuthToken {
 	char *header;
 	char *auth_token;
@@ -51,8 +57,8 @@ typedef struct ResponseDatabaseAction ResponseDatabaseAction;
 
 #if defined(__STDC__) || defined(__cplusplus)
 #define REQUEST_AUTH_TOKEN 1
-extern  ResponseAuthToken * request_auth_token_1(char **, CLIENT *);
-extern  ResponseAuthToken * request_auth_token_1_svc(char **, struct svc_req *);
+extern  ResponseAuthToken * request_auth_token_1(RequestAuthToken *, CLIENT *);
+extern  ResponseAuthToken * request_auth_token_1_svc(RequestAuthToken *, struct svc_req *);
 #define REQUEST_SIGNED_TOKEN 2
 extern  ResponseSignedToken * request_signed_token_1(char **, CLIENT *);
 extern  ResponseSignedToken * request_signed_token_1_svc(char **, struct svc_req *);
@@ -89,6 +95,7 @@ extern int oauth_prog_1_freeresult ();
 /* the xdr functions */
 
 #if defined(__STDC__) || defined(__cplusplus)
+extern  bool_t xdr_RequestAuthToken (XDR *, RequestAuthToken*);
 extern  bool_t xdr_ResponseAuthToken (XDR *, ResponseAuthToken*);
 extern  bool_t xdr_ResponseSignedToken (XDR *, ResponseSignedToken*);
 extern  bool_t xdr_ResponseBearerToken (XDR *, ResponseBearerToken*);
@@ -96,6 +103,7 @@ extern  bool_t xdr_ExecuteDatabaseAction (XDR *, ExecuteDatabaseAction*);
 extern  bool_t xdr_ResponseDatabaseAction (XDR *, ResponseDatabaseAction*);
 
 #else /* K&R C */
+extern bool_t xdr_RequestAuthToken ();
 extern bool_t xdr_ResponseAuthToken ();
 extern bool_t xdr_ResponseSignedToken ();
 extern bool_t xdr_ResponseBearerToken ();

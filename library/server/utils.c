@@ -231,16 +231,19 @@ bool isAcceptedByUsed(Permission* clientPermissions){
         || strcmp(clientPermissions[0].rights, "-") != 0;
 }
 
-void saveAuthToken(char *id, char *auth_token){
+void saveAuthToken(char *id, char *auth_token, bool isAutoRefreshActivated){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].id, id) == 0){
             strcpy(users[i].auth_token, auth_token);
+            users[i].isAutoRefreshActivated = isAutoRefreshActivated;
+            // printf("!%s!\n", users[i].auth_token);
         }
     }
 }
 
 void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, int ttl, Permission *clientPermissions){
     for(int i=0; i<nrUsers; i++){
+
         if(strcmp(users[i].auth_token, auth_token) == 0){
             strcpy(users[i].access_token, access_token);
             strcpy(users[i].refresh_token, refresh_token);
@@ -251,6 +254,21 @@ void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, 
             // printf("!%d!\n\n", users[i].ttl);
         }
     }
+}
+
+void saveBearerTokenUsingRefreshToken(char *old_refresh_token, char *access_token, char *refresh_token, int ttl){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].refresh_token, old_refresh_token) == 0){
+            strcpy(users[i].access_token, access_token);
+            strcpy(users[i].refresh_token, refresh_token);
+            users[i].ttl = ttl;
+            // printf("!%s!\n", old_refresh_token);
+            // printf("!%s!\n", users[i].access_token);
+            // printf("!%s!\n", users[i].refresh_token);
+            // printf("!%d!\n\n", users[i].ttl);
+        }
+    }
+
 }
 
 bool isResourcesFile(char *file){
@@ -295,13 +313,40 @@ bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, ch
 
             int indexPermission = 0;
             for(indexPermission = 0; strcmp(users[indexUser].permissions[indexPermission].file, file) != 0 && indexPermission < 10; indexPermission++);
-            // printf("!%d!\n", indexPermission);
-            // printf("!%s!\n\n", users[indexUser].permissions[indexPermission].file);
-            
+            printf("!%s!\n", action);
+            printf("!%s!\n", access_token);
+            printf("!%d!\n", indexPermission);
+            printf("!%s!\n", users[indexUser].permissions[indexPermission].file);
+            printf("!%s!\n\n", users[indexUser].permissions[indexPermission].rights);
 
-            for(int i = 0; i<strlen(users[indexUser].permissions[indexPermission].rights); i++)
-                if(strchr(action, users[indexUser].permissions[indexPermission].rights[i]) != NULL)
-                    return true;
+            if(strcmp(action, "READ") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'R') != NULL)
+                return true;
+            
+            if(strcmp(action, "INSERT") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'I') != NULL){
+                printf("ok\n\n\n");
+                return true;
+            }
+            if(strcmp(action, "MODIFY") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'M') != NULL)
+                return true;
+
+            if(strcmp(action, "DELETE") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'D') != NULL)
+                return true;
+
+            if(strcmp(action, "EXECUTE") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'X') != NULL)
+                return true;
+            // for(int i = 0; i<strlen(users[indexUser].permissions[indexPermission].rights); i++)
+            //     if(strchr(action, users[indexUser].permissions[indexPermission].rights[i]) != NULL)
+            //         return true;
+        }
+    }
+
+    return false;
+}
+
+bool isAutoRefreshTokenUser(char *auth_token){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].auth_token, auth_token) == 0){
+            return users[i].isAutoRefreshActivated;
         }
     }
 

@@ -25,4 +25,4 @@ typedef struct {
 
 int readInputClientFile(char* filename, InputClient** inputs);
 void addClientCredentials(char* id, char *access_token, char* refresh_token, int ttl, ClientCredentials **credentials);
-ClientCredentials getClientCredentials(char *id, ClientCredentials *credentials);
+ClientCredentials *getClientCredentials(char *id, ClientCredentials *credentials);

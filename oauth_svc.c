@@ -13,6 +13,7 @@
 #include <netinet/in.h>
 #include "library/server/utils.h"
 
+
 #ifndef SIG_PF
 #define SIG_PF void(*)(int)
 #endif
@@ -21,7 +22,7 @@ static void
 oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
 	union {
-		char *request_auth_token_1_arg;
+		RequestAuthToken request_auth_token_1_arg;
 		char *request_signed_token_1_arg;
 		char *request_bearer_token_1_arg;
 		char *request_new_bearer_token_1_arg;
@@ -37,7 +38,7 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		return;
 
 	case REQUEST_AUTH_TOKEN:
-		_xdr_argument = (xdrproc_t) xdr_wrapstring;
+		_xdr_argument = (xdrproc_t) xdr_RequestAuthToken;
 		_xdr_result = (xdrproc_t) xdr_ResponseAuthToken;
 		local = (char *(*)(char *, struct svc_req *)) request_auth_token_1_svc;
 		break;
@@ -121,7 +122,7 @@ main (int argc, char **argv)
 	generateSecretKey();
 
 	// ---------------------------------
-
+	
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");
 	exit (1);

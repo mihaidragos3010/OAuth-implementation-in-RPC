@@ -6,6 +6,18 @@
 #include "oauth.h"
 
 bool_t
+xdr_RequestAuthToken (XDR *xdrs, RequestAuthToken *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->idClient, ~0))
+		 return FALSE;
+	 if (!xdr_bool (xdrs, &objp->isAutoRefreshActivated))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
 xdr_ResponseAuthToken (XDR *xdrs, ResponseAuthToken *objp)
 {
 	register int32_t *buf;

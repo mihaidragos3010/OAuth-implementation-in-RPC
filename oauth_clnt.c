@@ -10,13 +10,13 @@
 static struct timeval TIMEOUT = { 25, 0 };
 
 ResponseAuthToken *
-request_auth_token_1(char **argp, CLIENT *clnt)
+request_auth_token_1(RequestAuthToken *argp, CLIENT *clnt)
 {
 	static ResponseAuthToken clnt_res;
 
 	memset((char *)&clnt_res, 0, sizeof(clnt_res));
 	if (clnt_call (clnt, REQUEST_AUTH_TOKEN,
-		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+		(xdrproc_t) xdr_RequestAuthToken, (caddr_t) argp,
 		(xdrproc_t) xdr_ResponseAuthToken, (caddr_t) &clnt_res,
 		TIMEOUT) != RPC_SUCCESS) {
 		return (NULL);

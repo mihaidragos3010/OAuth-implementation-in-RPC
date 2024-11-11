@@ -15,16 +15,18 @@ int nrPermissions;
 char** resourcesFiles;
 int nrResourcesFiles;
 
-ResponseAuthToken* request_auth_token_1_svc(char **argp, struct svc_req *rqstp)
+ResponseAuthToken *
+request_auth_token_1_svc(RequestAuthToken *argp, struct svc_req *rqstp)
 {
 	static ResponseAuthToken  result;
 
-	char* idClient = argp[0];
-
+	char* idClient = argp[0].idClient;
+	bool isAutoRefreshActivated = argp[0].isAutoRefreshActivated;
+	
 	if(isIdAllowed(idClient)){
 		result.header = strdup("SUCCESS");
 		result.auth_token = generate_access_token(idClient);
-		saveAuthToken(idClient, result.auth_token);
+		saveAuthToken(idClient, result.auth_token, isAutoRefreshActivated);
 	}else{
 		result.header = strdup("USER_NOT_FOUND");
 	}
@@ -56,7 +58,7 @@ ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqs
 	static ResponseBearerToken  result;
 	result.header = calloc(1, 20);
 	result.refresh_token = calloc(1, TOKEN_LEN);
-	result.ttl = 5;
+	result.ttl = 2;
 	
 	char* signed_token = argp[0];
 	char* unsigned_token = decrypt(signed_token);
@@ -69,10 +71,15 @@ ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqs
 	// printf("|%s|\n", clientPermissions[0].file);
 	// printf("|%s|\n", clientPermissions[0].rights);
 
-	// printf("|%s|\n", auth_token);
+	// printf("!%s!\n", auth_token);
 	result.access_token = generate_access_token(auth_token);
 	// printf("|%s|\n\n", result.access_token);
-	saveBearerToken(auth_token, result.access_token, "", 2, clientPermissions);
+
+	if(isAutoRefreshTokenUser(auth_token)){
+		result.refresh_token = generate_access_token(result.access_token);
+	}
+
+	saveBearerToken(auth_token, result.access_token, result.refresh_token, 2, clientPermissions);
 
 	return &result;
 }
@@ -80,11 +87,24 @@ ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqs
 ResponseBearerToken *
 request_new_bearer_token_1_svc(char **argp, struct svc_req *rqstp)
 {
+
 	static ResponseBearerToken  result;
 
-	/*
-	 * insert server code here
-	 */
+	// printf("%d\n", nr);
+	// printf("|%s|\n", clientPermissions[0].file);
+	// printf("|%s|\n", clientPermissions[0].rights);
+
+	// printf("|%s|\n", auth_token);
+	char *refresh_token = argp[0];
+	if(strlen(refresh_token) > 0){
+		result.header = strdup("SUCCESS");
+		result.access_token = generate_access_token(refresh_token);
+		result.refresh_token = generate_access_token(result.access_token);
+		result.ttl = 2;
+		saveBearerTokenUsingRefreshToken(refresh_token, result.access_token, result.refresh_token, result.ttl);
+	}else {
+		result.header = strdup("NOT_ACCEPTED_REFRESH_TOKEN");
+	}
 
 	return &result;
 }
@@ -96,12 +116,25 @@ execute_databasa_action_1_svc(ExecuteDatabaseAction *argp, struct svc_req *rqstp
 
 	ExecuteDatabaseAction execute_databasa_action = argp[0];
 	// printf("|%s|\n", execute_databasa_action.access_token);
-	// printf("|%s|\n", execute_databasa_action.action);
-	// printf("|%s|\n\n", execute_databasa_action.file);
+	printf("|%s|\n", execute_databasa_action.action);
+	printf("|%s|\n", execute_databasa_action.file);
 
 	for(int i=0; i<nrUsers; i++)
-        if(strcmp(users[i].access_token, execute_databasa_action.access_token) == 0)
+        if(strcmp(users[i].access_token, execute_databasa_action.access_token) == 0){
             users[i].ttl--;
+			// printf("%s\n", users[i].id);
+			// printf("%s\n", users[i].access_token);
+			// printf("%d\n", users[i].ttl);
+		}
+
+	printf("|%s|\n", users[4].id);
+	printf("|%s|\n", users[4].access_token);
+	printf("|%s|\n", users[4].refresh_token);
+	printf("|%d|\n", users[4].ttl);
+	printf("|%s|\n", users[1].id);
+	printf("|%s|\n", users[1].access_token);
+	printf("|%s|\n", users[1].refresh_token);
+	printf("|%d|\n\n", users[1].ttl);
 
 	if(!isResourcesFile(execute_databasa_action.file)){
 		result.header = strdup("RESOURCE_NOT_FOUND");
@@ -119,10 +152,9 @@ execute_databasa_action_1_svc(ExecuteDatabaseAction *argp, struct svc_req *rqstp
 		return &result;
 	}
 
-	if(!isAccessTokenAllowedToExecutThisAction(
-									execute_databasa_action.access_token, 
-									execute_databasa_action.action, 
-									execute_databasa_action.file)){
+	if(!isAccessTokenAllowedToExecutThisAction(execute_databasa_action.access_token, 
+											execute_databasa_action.action, 
+											execute_databasa_action.file)){
 		result.header = strdup("OPERATION_NOT_PERMITTED");
 		return &result;
 	}
@@ -133,11 +165,6 @@ execute_databasa_action_1_svc(ExecuteDatabaseAction *argp, struct svc_req *rqstp
 	// printf("|%s|\n", execute_databasa_action.access_token);
 	// printf("|%s|\n", execute_databasa_action.action);
 	// printf("|%s|\n\n", execute_databasa_action.file);
-	// // printf("|%s|\n", credentials.id);
-	// // printf("|%s|\n", credentials.access_token);
-	// // printf("|%s|\n", credentials.refresh_token);
-	// // printf("|%d|\n\n", credentials.ttl);
-	
 	// if(isAccessTokenAllowdToExecutAction()){
 	// 	result.header = strdup("SUCCESS");
 	// }else{

@@ -67,20 +67,20 @@ void addClientCredentials(char* id, char *access_token, char* refresh_token, int
 
 }
 
-ClientCredentials getClientCredentials(char *id, ClientCredentials *credentials){
+ClientCredentials *getClientCredentials(char *id, ClientCredentials *credentials){
 
     for(int i = 0; i < MAX_CLIENTS_ACCEPTED; i++){
 
         if(strcmp(credentials[i].id, id) == 0){
-            return credentials[i];
+            return &(credentials[i]);
         }
     }
 
-    ClientCredentials dummy;
-    strcpy(dummy.id, id);
-    memset(dummy.access_token, 0 , TOKEN_SIZE);
-    memset(dummy.refresh_token, 0 , TOKEN_SIZE);
-    dummy.ttl = 0;
+    ClientCredentials *dummy = calloc(1, sizeof(ClientCredentials));
+    strcpy(dummy->id, id);
+    memset(dummy->access_token, 0 , TOKEN_SIZE);
+    memset(dummy->refresh_token, 0 , TOKEN_SIZE);
+    dummy->ttl = 0;
 
     return dummy;
 }

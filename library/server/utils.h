@@ -25,6 +25,7 @@ typedef struct {
     char *refresh_token;
     int ttl;
     Permission *permissions;
+    bool isAutoRefreshActivated;
 } User;
 
 
@@ -32,8 +33,9 @@ void readUsersAllowed(char* filename);
 void removeNewline(char* str);
 void readPermissionsFile(char* filename);
 
-void saveAuthToken(char *id, char *auth_token);
+void saveAuthToken(char *id, char *auth_token, bool isAutoRefreshActivated);
 void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, int ttl, Permission *clientPermissions);
+void saveBearerTokenUsingRefreshToken(char *old_refresh_token, char *access_token, char *refresh_token, int ttl);
 
 Permission* getNextPossiblePermission();
 char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPermissions);
@@ -49,3 +51,4 @@ bool isResourcesFile(char *file);
 bool isAccessTokenRecognized(char *access_token);
 bool isAccessTokenExpired(char *access_token);
 bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, char *file);
+bool isAutoRefreshTokenUser(char *auth_token);
