@@ -34,6 +34,18 @@ struct ResponseBearerToken {
 };
 typedef struct ResponseBearerToken ResponseBearerToken;
 
+struct ExecuteDatabaseAction {
+	char *file;
+	char *action;
+	char *access_token;
+};
+typedef struct ExecuteDatabaseAction ExecuteDatabaseAction;
+
+struct ResponseDatabaseAction {
+	char *header;
+};
+typedef struct ResponseDatabaseAction ResponseDatabaseAction;
+
 #define OAUTH_PROG 0x23451112
 #define OAUTH_VERS 1
 
@@ -47,6 +59,12 @@ extern  ResponseSignedToken * request_signed_token_1_svc(char **, struct svc_req
 #define REQUEST_BEARER_TOKEN 3
 extern  ResponseBearerToken * request_bearer_token_1(char **, CLIENT *);
 extern  ResponseBearerToken * request_bearer_token_1_svc(char **, struct svc_req *);
+#define REQUEST_NEW_BEARER_TOKEN 4
+extern  ResponseBearerToken * request_new_bearer_token_1(char **, CLIENT *);
+extern  ResponseBearerToken * request_new_bearer_token_1_svc(char **, struct svc_req *);
+#define EXECUTE_DATABASA_ACTION 5
+extern  ResponseDatabaseAction * execute_databasa_action_1(ExecuteDatabaseAction *, CLIENT *);
+extern  ResponseDatabaseAction * execute_databasa_action_1_svc(ExecuteDatabaseAction *, struct svc_req *);
 extern int oauth_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -59,6 +77,12 @@ extern  ResponseSignedToken * request_signed_token_1_svc();
 #define REQUEST_BEARER_TOKEN 3
 extern  ResponseBearerToken * request_bearer_token_1();
 extern  ResponseBearerToken * request_bearer_token_1_svc();
+#define REQUEST_NEW_BEARER_TOKEN 4
+extern  ResponseBearerToken * request_new_bearer_token_1();
+extern  ResponseBearerToken * request_new_bearer_token_1_svc();
+#define EXECUTE_DATABASA_ACTION 5
+extern  ResponseDatabaseAction * execute_databasa_action_1();
+extern  ResponseDatabaseAction * execute_databasa_action_1_svc();
 extern int oauth_prog_1_freeresult ();
 #endif /* K&R C */
 
@@ -68,11 +92,15 @@ extern int oauth_prog_1_freeresult ();
 extern  bool_t xdr_ResponseAuthToken (XDR *, ResponseAuthToken*);
 extern  bool_t xdr_ResponseSignedToken (XDR *, ResponseSignedToken*);
 extern  bool_t xdr_ResponseBearerToken (XDR *, ResponseBearerToken*);
+extern  bool_t xdr_ExecuteDatabaseAction (XDR *, ExecuteDatabaseAction*);
+extern  bool_t xdr_ResponseDatabaseAction (XDR *, ResponseDatabaseAction*);
 
 #else /* K&R C */
 extern bool_t xdr_ResponseAuthToken ();
 extern bool_t xdr_ResponseSignedToken ();
 extern bool_t xdr_ResponseBearerToken ();
+extern bool_t xdr_ExecuteDatabaseAction ();
+extern bool_t xdr_ResponseDatabaseAction ();
 
 #endif /* K&R C */
 

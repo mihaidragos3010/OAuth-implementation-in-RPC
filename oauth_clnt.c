@@ -53,3 +53,33 @@ request_bearer_token_1(char **argp, CLIENT *clnt)
 	}
 	return (&clnt_res);
 }
+
+ResponseBearerToken *
+request_new_bearer_token_1(char **argp, CLIENT *clnt)
+{
+	static ResponseBearerToken clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, REQUEST_NEW_BEARER_TOKEN,
+		(xdrproc_t) xdr_wrapstring, (caddr_t) argp,
+		(xdrproc_t) xdr_ResponseBearerToken, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}
+
+ResponseDatabaseAction *
+execute_databasa_action_1(ExecuteDatabaseAction *argp, CLIENT *clnt)
+{
+	static ResponseDatabaseAction clnt_res;
+
+	memset((char *)&clnt_res, 0, sizeof(clnt_res));
+	if (clnt_call (clnt, EXECUTE_DATABASA_ACTION,
+		(xdrproc_t) xdr_ExecuteDatabaseAction, (caddr_t) argp,
+		(xdrproc_t) xdr_ResponseDatabaseAction, (caddr_t) &clnt_res,
+		TIMEOUT) != RPC_SUCCESS) {
+		return (NULL);
+	}
+	return (&clnt_res);
+}

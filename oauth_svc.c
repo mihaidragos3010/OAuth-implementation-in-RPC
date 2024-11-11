@@ -24,6 +24,8 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		char *request_auth_token_1_arg;
 		char *request_signed_token_1_arg;
 		char *request_bearer_token_1_arg;
+		char *request_new_bearer_token_1_arg;
+		ExecuteDatabaseAction execute_databasa_action_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -50,6 +52,18 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		_xdr_argument = (xdrproc_t) xdr_wrapstring;
 		_xdr_result = (xdrproc_t) xdr_ResponseBearerToken;
 		local = (char *(*)(char *, struct svc_req *)) request_bearer_token_1_svc;
+		break;
+
+	case REQUEST_NEW_BEARER_TOKEN:
+		_xdr_argument = (xdrproc_t) xdr_wrapstring;
+		_xdr_result = (xdrproc_t) xdr_ResponseBearerToken;
+		local = (char *(*)(char *, struct svc_req *)) request_new_bearer_token_1_svc;
+		break;
+
+	case EXECUTE_DATABASA_ACTION:
+		_xdr_argument = (xdrproc_t) xdr_ExecuteDatabaseAction;
+		_xdr_result = (xdrproc_t) xdr_ResponseDatabaseAction;
+		local = (char *(*)(char *, struct svc_req *)) execute_databasa_action_1_svc;
 		break;
 
 	default:
@@ -103,10 +117,11 @@ main (int argc, char **argv)
 
 	readUsersAllowed("userIDs.db");
 	readPermissionsFile("approvals.db");
+	readResourceFiles("resources.db");
 	generateSecretKey();
 
 	// ---------------------------------
-	
+
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");
 	exit (1);

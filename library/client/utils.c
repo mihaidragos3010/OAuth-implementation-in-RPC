@@ -43,3 +43,44 @@ int readInputClientFile(char* filename, InputClient** inputs) {
     fclose(file);
     return index;
 }
+
+void addClientCredentials(char* id, char *access_token, char* refresh_token, int ttl, ClientCredentials **credentials){
+
+    for(int i = 0; i < MAX_CLIENTS_ACCEPTED; i++){
+
+        if(strlen((*credentials)[i].id) == 0){
+            strcpy((*credentials)[i].id, id);
+            strcpy((*credentials)[i].access_token, access_token);
+            strcpy((*credentials)[i].refresh_token, refresh_token);
+            (*credentials)[i].ttl = ttl;
+            return;
+        }
+
+        if(strcmp((*credentials)[i].id, id) == 0){
+            strcpy((*credentials)[i].access_token, access_token);
+            strcpy((*credentials)[i].refresh_token, refresh_token);
+            (*credentials)[i].ttl = ttl;
+            return;
+        }
+    }
+
+
+}
+
+ClientCredentials getClientCredentials(char *id, ClientCredentials *credentials){
+
+    for(int i = 0; i < MAX_CLIENTS_ACCEPTED; i++){
+
+        if(strcmp(credentials[i].id, id) == 0){
+            return credentials[i];
+        }
+    }
+
+    ClientCredentials dummy;
+    strcpy(dummy.id, id);
+    memset(dummy.access_token, 0 , TOKEN_SIZE);
+    memset(dummy.refresh_token, 0 , TOKEN_SIZE);
+    dummy.ttl = 0;
+
+    return dummy;
+}

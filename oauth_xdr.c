@@ -44,3 +44,27 @@ xdr_ResponseBearerToken (XDR *xdrs, ResponseBearerToken *objp)
 		 return FALSE;
 	return TRUE;
 }
+
+bool_t
+xdr_ExecuteDatabaseAction (XDR *xdrs, ExecuteDatabaseAction *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->file, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->action, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->access_token, ~0))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_ResponseDatabaseAction (XDR *xdrs, ResponseDatabaseAction *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->header, ~0))
+		 return FALSE;
+	return TRUE;
+}

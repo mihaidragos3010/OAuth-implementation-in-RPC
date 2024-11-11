@@ -6,6 +6,9 @@ extern int nrUsers;
 extern Permission **permissions;
 extern int nrPermissions;
 
+extern char **resourcesFiles;
+extern int nrResourcesFiles;
+
 void readUsersAllowed(char* filename) {
 
     FILE *file = fopen(filename, "r");
@@ -27,10 +30,12 @@ void readUsersAllowed(char* filename) {
         memcpy(users[index].id, line, MAX_USED_ID_LENGTH-1);
         users[index].id[MAX_USED_ID_LENGTH - 1] = '\0';
 
+        users[index].auth_token = calloc(1, MAX_USED_ID_LENGTH);
         users[index].access_token = calloc(1, MAX_USED_ID_LENGTH);
         users[index].refresh_token = calloc(1, MAX_USED_ID_LENGTH);
         users[index].permissions = calloc(10, sizeof(Permission));
-        
+        users[index].ttl = 2;
+
         fgets(line, sizeof(line), file);
         
         index++;
@@ -38,6 +43,34 @@ void readUsersAllowed(char* filename) {
 
     fclose(file);
 }
+
+void readResourceFiles(char *filename){
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Unable to open the file");
+        return;
+    }
+
+    char line[MAX_RESOURCES_FILE_LENGTH];
+    fgets(line, sizeof(line), file);
+    nrResourcesFiles = atoi(line);
+
+    resourcesFiles = calloc(nrResourcesFiles, sizeof(char*));
+
+    int index = 0;
+    while (fgets(line, sizeof(line), file)) {
+
+        removeNewline(line);
+        resourcesFiles[index] = calloc(1, MAX_RESOURCES_FILE_LENGTH);
+        strcpy(resourcesFiles[index], line);
+        
+        index++;
+    }
+
+    fclose(file);
+}
+
 
 void removeNewline(char* str) {
     int i = 0, j = 0;
@@ -196,4 +229,81 @@ bool isAcceptedByUsed(Permission* clientPermissions){
 
     return strcmp(clientPermissions[0].file, "*") != 0 
         || strcmp(clientPermissions[0].rights, "-") != 0;
+}
+
+void saveAuthToken(char *id, char *auth_token){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].id, id) == 0){
+            strcpy(users[i].auth_token, auth_token);
+        }
+    }
+}
+
+void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, int ttl, Permission *clientPermissions){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].auth_token, auth_token) == 0){
+            strcpy(users[i].access_token, access_token);
+            strcpy(users[i].refresh_token, refresh_token);
+            users[i].ttl = ttl;
+            users[i].permissions = clientPermissions;
+            // printf("!%s!\n", users[i].access_token);
+            // printf("!%s!\n", users[i].refresh_token);
+            // printf("!%d!\n\n", users[i].ttl);
+        }
+    }
+}
+
+bool isResourcesFile(char *file){
+    for(int i = 0; i<nrResourcesFiles; i++){
+        if(strcmp(resourcesFiles[i], file) == 0)
+            return true;
+    }
+    return false;
+}
+
+bool isAccessTokenRecognized(char *access_token){
+
+    if(strlen(access_token) > 0){
+        for(int i=0; i<nrUsers; i++){
+            // printf("|%s|\n", users[i].access_token);
+            // printf("|%s|\n\n", access_token);
+            if(strcmp(users[i].access_token, access_token) == 0)
+                return true;
+        }
+    }
+    // printf("\n\n");
+    return false;
+}
+
+bool isAccessTokenExpired(char *access_token){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].access_token, access_token) == 0){
+            // printf("!%s!\n", users[i].access_token);
+            // printf("!%s!\n", users[i].refresh_token);
+            // printf("!%d!\n\n", users[i].ttl);
+            return users[i].ttl < 0;
+        }
+    }
+
+    return false;
+}
+
+bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, char *file){
+    
+    for(int indexUser = 0; indexUser<nrUsers; indexUser++){
+        if(strcmp(users[indexUser].access_token, access_token) == 0){
+
+            int indexPermission = 0;
+            for(indexPermission = 0; strcmp(users[indexUser].permissions[indexPermission].file, file) != 0 && indexPermission < 10; indexPermission++);
+            // printf("!%d!\n", indexPermission);
+            // printf("!%s!\n\n", users[indexUser].permissions[indexPermission].file);
+            
+
+            for(int i = 0; i<strlen(users[indexUser].permissions[indexPermission].rights); i++)
+                if(strchr(action, users[indexUser].permissions[indexPermission].rights[i]) != NULL)
+                    return true;
+        }
+    }
+
+    return false;
 }
