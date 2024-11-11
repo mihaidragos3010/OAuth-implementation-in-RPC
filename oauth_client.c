@@ -30,28 +30,29 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 		request.isAutoRefreshActivated = (input.arguments[0] == '1');
 
 		if(strcmp(input.command, "REQUEST") == 0){
-			printf("|%s|\n", input.id);
+
 			ResponseAuthToken  *response_auth_token = request_auth_token_1(&request, clnt);
 
 			if(strcmp(response_auth_token->header, "USER_NOT_FOUND") == 0){
-				// TO DO
-				printf("|%s|\n\n", response_auth_token->header);
+				printf("%s\n", response_auth_token->header);
 				continue;
 			}
 
-			// printf("|%s|\n", response_auth_token->auth_token);
 			ResponseSignedToken  *response_signed_token = request_signed_token_1(&response_auth_token->auth_token, clnt);
-			// printf("|%s|\n\n", response_signed_token->signed_token);
 
 			if(strcmp(response_signed_token->header, "REQUEST_DENIED") == 0){
-				// TO DO
-				printf("|%s|\n\n", response_signed_token->header);
+				printf("%s\n", response_signed_token->header);
 				continue;
 			}
 
 			ResponseBearerToken  *response_bearer_token = request_bearer_token_1(&response_signed_token->signed_token, clnt);
-			printf("|%s|\n", response_bearer_token->access_token);
-			printf("|%s|\n\n", response_bearer_token->refresh_token);
+
+			if(strlen(response_bearer_token->refresh_token) > 0){
+				printf("%s -> %s,%s\n", response_auth_token->auth_token, response_bearer_token->access_token, response_bearer_token->refresh_token);
+			} else {
+				printf("%s -> %s\n", response_auth_token->auth_token, response_bearer_token->access_token);
+
+			}
 
 			addClientCredentials(idClient, 
 									response_bearer_token->access_token,
@@ -73,13 +74,7 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 									response_bearer_token->ttl, 
 									&clients);
 			}
-			
-			printf("|%s|\n", credentials->id);
-			printf("|%s|\n", credentials->access_token);
-			printf("|%s|\n", credentials->refresh_token);
-			printf("|%d|\n", credentials->ttl);
-			printf("|%s|\n", input.command);
-
+		
 			ExecuteDatabaseAction execute_databese_action;
 			execute_databese_action.access_token = credentials->access_token;
 			execute_databese_action.action = input.command;
@@ -87,14 +82,10 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 			ResponseDatabaseAction *response_databese_action = execute_databasa_action_1(&execute_databese_action, clnt);
 			credentials->ttl--;
 
-			printf("|%s|\n\n", response_databese_action->header);
+			printf("%s\n", response_databese_action->header);
 		}
 
 	}
-
-	// printf("{{{{%s}}}}\n", clients[0].id);
-	// printf("{{{{%s}}}}\n", clients[1].id);
-	// printf("{{{{%s}}}}\n", clients[2].id);
 
 	clnt_destroy (clnt);
 

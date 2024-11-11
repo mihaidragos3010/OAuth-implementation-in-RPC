@@ -32,6 +32,7 @@ typedef struct {
 void readUsersAllowed(char* filename);
 void removeNewline(char* str);
 void readPermissionsFile(char* filename);
+void setTTL(int defaultTTL);
 
 void saveAuthToken(char *id, char *auth_token, bool isAutoRefreshActivated);
 void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, int ttl, Permission *clientPermissions);
@@ -52,3 +53,6 @@ bool isAccessTokenRecognized(char *access_token);
 bool isAccessTokenExpired(char *access_token);
 bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, char *file);
 bool isAutoRefreshTokenUser(char *auth_token);
+
+void logNotResourceFileFound(char *action, char *file, char *access_token);
+void logAccessTokenNotRecognized(char *action, char *file, char *access_token);

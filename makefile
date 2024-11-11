@@ -11,7 +11,7 @@ build:
 	gcc -o client oauth_client.c oauth_clnt.c oauth_xdr.c library/client/utils.c  -ltirpc -I/usr/include/tirpc -g
 
 run_server:
-	./server userID.db
+	./server userIDs.db approvals.db resources.db 5
 
 run_client:
 	./client localhost client.in

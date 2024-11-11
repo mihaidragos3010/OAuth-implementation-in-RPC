@@ -9,6 +9,8 @@ extern int nrPermissions;
 extern char **resourcesFiles;
 extern int nrResourcesFiles;
 
+extern int defaultTTL;
+
 void readUsersAllowed(char* filename) {
 
     FILE *file = fopen(filename, "r");
@@ -34,7 +36,7 @@ void readUsersAllowed(char* filename) {
         users[index].access_token = calloc(1, MAX_USED_ID_LENGTH);
         users[index].refresh_token = calloc(1, MAX_USED_ID_LENGTH);
         users[index].permissions = calloc(10, sizeof(Permission));
-        users[index].ttl = 2;
+        users[index].ttl = defaultTTL;
 
         fgets(line, sizeof(line), file);
         
@@ -137,6 +139,10 @@ void readPermissionsFile(char* filename){
     fclose(file);
 }
 
+void setTTL(int ttl){
+    defaultTTL = ttl;
+}
+
 static int indexGlobalPermissions = 0;
 Permission* getNextPossiblePermission() {
     
@@ -236,7 +242,6 @@ void saveAuthToken(char *id, char *auth_token, bool isAutoRefreshActivated){
         if(strcmp(users[i].id, id) == 0){
             strcpy(users[i].auth_token, auth_token);
             users[i].isAutoRefreshActivated = isAutoRefreshActivated;
-            // printf("!%s!\n", users[i].auth_token);
         }
     }
 }
@@ -249,9 +254,6 @@ void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, 
             strcpy(users[i].refresh_token, refresh_token);
             users[i].ttl = ttl;
             users[i].permissions = clientPermissions;
-            // printf("!%s!\n", users[i].access_token);
-            // printf("!%s!\n", users[i].refresh_token);
-            // printf("!%d!\n\n", users[i].ttl);
         }
     }
 }
@@ -262,10 +264,11 @@ void saveBearerTokenUsingRefreshToken(char *old_refresh_token, char *access_toke
             strcpy(users[i].access_token, access_token);
             strcpy(users[i].refresh_token, refresh_token);
             users[i].ttl = ttl;
-            // printf("!%s!\n", old_refresh_token);
-            // printf("!%s!\n", users[i].access_token);
-            // printf("!%s!\n", users[i].refresh_token);
-            // printf("!%d!\n\n", users[i].ttl);
+
+            printf("BEGIN %s AUTHZ REFRESH\n", users[i].id);
+            printf("  AccessToken = %s\n", access_token);
+            printf("  RefreshToken = %s\n",refresh_token);
+            fflush(stdout);
         }
     }
 
@@ -275,6 +278,7 @@ bool isResourcesFile(char *file){
     for(int i = 0; i<nrResourcesFiles; i++){
         if(strcmp(resourcesFiles[i], file) == 0)
             return true;
+        
     }
     return false;
 }
@@ -283,26 +287,21 @@ bool isAccessTokenRecognized(char *access_token){
 
     if(strlen(access_token) > 0){
         for(int i=0; i<nrUsers; i++){
-            // printf("|%s|\n", users[i].access_token);
-            // printf("|%s|\n\n", access_token);
             if(strcmp(users[i].access_token, access_token) == 0)
                 return true;
         }
     }
-    // printf("\n\n");
+
     return false;
 }
 
 bool isAccessTokenExpired(char *access_token){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].access_token, access_token) == 0){
-            // printf("!%s!\n", users[i].access_token);
-            // printf("!%s!\n", users[i].refresh_token);
-            // printf("!%d!\n\n", users[i].ttl);
             return users[i].ttl < 0;
         }
     }
-
+    
     return false;
 }
 
@@ -313,30 +312,39 @@ bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, ch
 
             int indexPermission = 0;
             for(indexPermission = 0; strcmp(users[indexUser].permissions[indexPermission].file, file) != 0 && indexPermission < 10; indexPermission++);
-            printf("!%s!\n", action);
-            printf("!%s!\n", access_token);
-            printf("!%d!\n", indexPermission);
-            printf("!%s!\n", users[indexUser].permissions[indexPermission].file);
-            printf("!%s!\n\n", users[indexUser].permissions[indexPermission].rights);
 
-            if(strcmp(action, "READ") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'R') != NULL)
-                return true;
-            
-            if(strcmp(action, "INSERT") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'I') != NULL){
-                printf("ok\n\n\n");
+            if(strcmp(action, "READ") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'R') != NULL){
+                printf("PERMIT (%s,%s,%s,%d)\n", action, file, access_token, users[indexUser].ttl);
+                fflush(stdout);
                 return true;
             }
-            if(strcmp(action, "MODIFY") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'M') != NULL)
-                return true;
 
-            if(strcmp(action, "DELETE") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'D') != NULL)
+            if(strcmp(action, "INSERT") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'I') != NULL){
+                printf("PERMIT (%s,%s,%s,%d)\n", action, file, access_token, users[indexUser].ttl);
+                fflush(stdout);
                 return true;
+            }
 
-            if(strcmp(action, "EXECUTE") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'X') != NULL)
+            if(strcmp(action, "MODIFY") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'M') != NULL){
+                printf("PERMIT (%s,%s,%s,%d)\n", action, file, access_token, users[indexUser].ttl);
+                fflush(stdout);
                 return true;
-            // for(int i = 0; i<strlen(users[indexUser].permissions[indexPermission].rights); i++)
-            //     if(strchr(action, users[indexUser].permissions[indexPermission].rights[i]) != NULL)
-            //         return true;
+            }
+
+            if(strcmp(action, "DELETE") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'D') != NULL){
+                printf("PERMIT (%s,%s,%s,%d)\n", action, file, access_token, users[indexUser].ttl);
+                fflush(stdout);
+                return true;
+            }
+
+            if(strcmp(action, "EXECUTE") == 0 && strchr(users[indexUser].permissions[indexPermission].rights, 'X') != NULL){
+                printf("PERMIT (%s,%s,%s,%d)\n", action, file, access_token, users[indexUser].ttl);
+                fflush(stdout);
+                return true;
+            }
+
+            printf("DENY (%s,%s,%s,%d)\n", action, file, access_token, users[indexUser].ttl);
+            fflush(stdout);
         }
     }
 
@@ -351,4 +359,24 @@ bool isAutoRefreshTokenUser(char *auth_token){
     }
 
     return false;
+}
+
+void logNotResourceFileFound(char *action, char *file, char *access_token){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].access_token, access_token) == 0){
+            printf("DENY (%s,%s,%s,%d)\n", action, file, access_token, users[i].ttl);
+            fflush(stdout);
+            return;
+        }
+    }
+}
+
+void logAccessTokenNotRecognized(char *action, char *file, char *access_token){
+    for(int i=0; i<nrUsers; i++){
+        if(strcmp(users[i].access_token, access_token) == 0){
+            printf("DENY (%s,%s,%s,%d)\n", action, file, access_token, 0);
+            fflush(stdout);
+            return;
+        }
+    }
 }

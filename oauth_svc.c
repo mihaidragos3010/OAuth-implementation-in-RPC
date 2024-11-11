@@ -87,8 +87,7 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 	return;
 }
 
-int
-main (int argc, char **argv)
+int main (int argc, char **argv)
 {
 	register SVCXPRT *transp;
 
@@ -116,13 +115,24 @@ main (int argc, char **argv)
 
 	// ---------------------------------
 
-	readUsersAllowed("userIDs.db");
-	readPermissionsFile("approvals.db");
-	readResourceFiles("resources.db");
+	if (argc < 4) {
+		printf ("Server need userIDs.db, approvals.db, resources.db and default ttl value!\n");
+		exit (1);
+	}
+
+	char *userIdsDB = argv[1];
+    char *resourcesDB = argv[2];
+    char *approvalsDB = argv[3];
+    int ttl = atoi(argv[4]);
+
+	readUsersAllowed(userIdsDB);
+	readPermissionsFile(approvalsDB);
+	readResourceFiles(resourcesDB);
+	setTTL(ttl);
 	generateSecretKey();
 
 	// ---------------------------------
-	
+
 	svc_run ();
 	fprintf (stderr, "%s", "svc_run returned");
 	exit (1);
