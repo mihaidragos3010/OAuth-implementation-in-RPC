@@ -11,6 +11,7 @@ extern int nrResourcesFiles;
 
 extern int defaultTTL;
 
+// Function is used to read all accepted clients and init a structure that contains clients credentails
 void readUsersAllowed(char* filename) {
 
     FILE *file = fopen(filename, "r");
@@ -46,6 +47,7 @@ void readUsersAllowed(char* filename) {
     fclose(file);
 }
 
+// Read resources files and create an array of them
 void readResourceFiles(char *filename){
 
     FILE *file = fopen(filename, "r");
@@ -73,7 +75,7 @@ void readResourceFiles(char *filename){
     fclose(file);
 }
 
-
+// Delete '\n' from a given string 
 void removeNewline(char* str) {
     int i = 0, j = 0;
     while (str[i]) {
@@ -85,7 +87,8 @@ void removeNewline(char* str) {
     str[j] = '\0';
 }
 
-
+// Read permissions file and return a matrix of Permission
+// Each line is permissions of one client
 void readPermissionsFile(char* filename){
 
     FILE *file = fopen(filename, "r");
@@ -139,10 +142,12 @@ void readPermissionsFile(char* filename){
     fclose(file);
 }
 
+// Set global ttl for server
 void setTTL(int ttl){
     defaultTTL = ttl;
 }
 
+// Get next line of permissions
 static int indexGlobalPermissions = 0;
 Permission* getNextPossiblePermission() {
     
@@ -153,6 +158,7 @@ Permission* getNextPossiblePermission() {
     return NULL;
 }
 
+// Append auth token and client permissions into a single string 
 char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPermissions){
 
     char *result = calloc(1, sizeof(auth_token) + 10 * sizeof(Permission));
@@ -172,15 +178,14 @@ char* appendAuthTokenAndClientPermissions(char *auth_token, Permission *clientPe
     return result;
 }
 
-
+// Generate server secret key
 static int key;
 void generateSecretKey(){
     key = 15;
 }
 
+// Encrypt function
 char* encrypt(char* data){
-
-
     for(int i = 0; i < strlen(data); i++){
         data[i] += key;
     }
@@ -188,8 +193,8 @@ char* encrypt(char* data){
     return data;
 }
 
+// Dencrypt function
 char* decrypt(char* data){
-
     for(int i = 0; i < strlen(data); i++){
          data[i] -= key;
     }
@@ -197,6 +202,7 @@ char* decrypt(char* data){
     return data;
 }
 
+// Function is used to get auth token and client permissions form a unsigned token
 int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Permission **clientPermissions){
 
     char *token = strtok(unsigned_token, ",");
@@ -222,6 +228,7 @@ int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Pe
     return index - 1;
 }
 
+// Check that client id is recognized by be server 
 bool isIdAllowed(char* idClient){
 
     for(int i=0; i < nrUsers; i++)
@@ -231,12 +238,14 @@ bool isIdAllowed(char* idClient){
     return false;
 }
 
+// Check if client access was accepted by the user
 bool isAcceptedByUsed(Permission* clientPermissions){
 
     return strcmp(clientPermissions[0].file, "*") != 0 
         || strcmp(clientPermissions[0].rights, "-") != 0;
 }
 
+// Save only auth token on users data strictures by id
 void saveAuthToken(char *id, char *auth_token, bool isAutoRefreshActivated){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].id, id) == 0){
@@ -246,6 +255,7 @@ void saveAuthToken(char *id, char *auth_token, bool isAutoRefreshActivated){
     }
 }
 
+// Save bearer token on users data struct by auth token 
 void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, int ttl, Permission *clientPermissions){
     for(int i=0; i<nrUsers; i++){
 
@@ -258,6 +268,7 @@ void saveBearerToken(char *auth_token, char *access_token, char *refresh_token, 
     }
 }
 
+// Update bearer token on users data struct by the refresh token
 void saveBearerTokenUsingRefreshToken(char *old_refresh_token, char *access_token, char *refresh_token, int ttl){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].refresh_token, old_refresh_token) == 0){
@@ -274,6 +285,7 @@ void saveBearerTokenUsingRefreshToken(char *old_refresh_token, char *access_toke
 
 }
 
+// Check that resourse is recognized by the server
 bool isResourcesFile(char *file){
     for(int i = 0; i<nrResourcesFiles; i++){
         if(strcmp(resourcesFiles[i], file) == 0)
@@ -283,6 +295,7 @@ bool isResourcesFile(char *file){
     return false;
 }
 
+// Check that auth token is regognized by the server 
 bool isAccessTokenRecognized(char *access_token){
 
     if(strlen(access_token) > 0){
@@ -295,6 +308,7 @@ bool isAccessTokenRecognized(char *access_token){
     return false;
 }
 
+// Check that ttl is expired or not
 bool isAccessTokenExpired(char *access_token){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].access_token, access_token) == 0){
@@ -305,6 +319,7 @@ bool isAccessTokenExpired(char *access_token){
     return false;
 }
 
+// Check that client has permissions to executed given action on file
 bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, char *file){
     
     for(int indexUser = 0; indexUser<nrUsers; indexUser++){
@@ -351,6 +366,7 @@ bool isAccessTokenAllowedToExecutThisAction(char *access_token, char *action, ch
     return false;
 }
 
+// Check that client have auto refersh token activated
 bool isAutoRefreshTokenUser(char *auth_token){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].auth_token, auth_token) == 0){
@@ -361,6 +377,7 @@ bool isAutoRefreshTokenUser(char *auth_token){
     return false;
 }
 
+// Log file given by the client is not recognized by the server
 void logNotResourceFileFound(char *action, char *file, char *access_token){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].access_token, access_token) == 0){
@@ -371,6 +388,7 @@ void logNotResourceFileFound(char *action, char *file, char *access_token){
     }
 }
 
+// Log access token given by the client is not recognized
 void logAccessTokenNotRecognized(char *action, char *file, char *access_token){
     for(int i=0; i<nrUsers; i++){
         if(strcmp(users[i].access_token, access_token) == 0){

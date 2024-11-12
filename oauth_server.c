@@ -16,7 +16,7 @@ char** resourcesFiles;
 int nrResourcesFiles;
 int defaultTTL;
 
-
+// Function is used to get a client id and return an auth token if client is recognized
 ResponseAuthToken* request_auth_token_1_svc(RequestAuthToken *argp, struct svc_req *rqstp)
 {
 	static ResponseAuthToken  result;
@@ -25,21 +25,31 @@ ResponseAuthToken* request_auth_token_1_svc(RequestAuthToken *argp, struct svc_r
 	bool isAutoRefreshActivated = argp[0].isAutoRefreshActivated;
 	
 	if(isIdAllowed(idClient)){
+
 		result.header = strdup("SUCCESS");
 		result.auth_token = generate_access_token(idClient);
 		saveAuthToken(idClient, result.auth_token, isAutoRefreshActivated);
+
 		printf("BEGIN %s AUTHZ\n", idClient);
 		printf("  RequestToken = %s\n", result.auth_token);
 		fflush(stdout);
+
 	}else{
+
 		result.header = strdup("USER_NOT_FOUND");
+
 		printf("BEGIN %s AUTHZ\n", idClient);
 		fflush(stdout);
+
 	}
 
 	return &result;
 }
 
+// Function is used to get an auth token and append to them some permissions. 
+// The token(auth token, perms) is encrypted using server secret key (key = 15)
+// Signed token is send back to the user
+// If perms selected for this client are "*,-" then client get "REQUEST_DENIED" response without a signed token.
 ResponseSignedToken* request_signed_token_1_svc(char **argp, struct svc_req *rqstp)
 {
 	static ResponseSignedToken  result;
@@ -49,16 +59,21 @@ ResponseSignedToken* request_signed_token_1_svc(char **argp, struct svc_req *rqs
 	Permission *clientPermissions = getNextPossiblePermission(permissions, nrPermissions);
 
 	if(isAcceptedByUsed(clientPermissions)){
+
 		result.header = strdup("SUCCESS");
 		char *unsigned_token = appendAuthTokenAndClientPermissions(auth_token, clientPermissions);
 		result.signed_token = encrypt(unsigned_token);
+
 	}else{
+
 		result.header = strdup("REQUEST_DENIED");
+
 	}
 
 	return &result;
 }
 
+// Function is used to get bearer token based on a signed token
 ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqstp)
 {
 	static ResponseBearerToken  result;
@@ -86,9 +101,9 @@ ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqs
 	return &result;
 }
 
+// Function is used to get new bearer token based on refresh token 
 ResponseBearerToken* request_new_bearer_token_1_svc(char **argp, struct svc_req *rqstp)
 {
-
 	static ResponseBearerToken  result;
 
 	char *refresh_token = argp[0];
@@ -105,6 +120,7 @@ ResponseBearerToken* request_new_bearer_token_1_svc(char **argp, struct svc_req 
 	return &result;
 }
 
+// Function is used to receive client commands and check that credentials and permissions are valid
 ResponseDatabaseAction* execute_databasa_action_1_svc(ExecuteDatabaseAction *argp, struct svc_req *rqstp)
 {
 	static ResponseDatabaseAction  result;

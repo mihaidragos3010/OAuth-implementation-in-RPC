@@ -18,6 +18,7 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 		exit (1);
 	}
 
+	// Init data struct that is used to identify client credentials based on his id
 	ClientCredentials *clients = calloc(MAX_CLIENTS_ACCEPTED, sizeof(ClientCredentials));
 
 	for(int i=0; i<nrInputs; i++){
@@ -29,24 +30,25 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 		request.idClient = idClient;
 		request.isAutoRefreshActivated = (input.arguments[0] == '1');
 
+		// Handle request command
 		if(strcmp(input.command, "REQUEST") == 0){
 
+			// Request auth token for this client id
 			ResponseAuthToken  *response_auth_token = request_auth_token_1(&request, clnt);
-
 			if(strcmp(response_auth_token->header, "USER_NOT_FOUND") == 0){
 				printf("%s\n", response_auth_token->header);
 				continue;
 			}
 
+			// Request signed token that is an encrypted version of (auth token, perms)
 			ResponseSignedToken  *response_signed_token = request_signed_token_1(&response_auth_token->auth_token, clnt);
-
 			if(strcmp(response_signed_token->header, "REQUEST_DENIED") == 0){
 				printf("%s\n", response_signed_token->header);
 				continue;
 			}
 
+			// Request bearer token (access token, request token, ttl) 
 			ResponseBearerToken  *response_bearer_token = request_bearer_token_1(&response_signed_token->signed_token, clnt);
-
 			if(strlen(response_bearer_token->refresh_token) > 0){
 				printf("%s -> %s,%s\n", response_auth_token->auth_token, response_bearer_token->access_token, response_bearer_token->refresh_token);
 			} else {
@@ -54,20 +56,24 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 
 			}
 
+			// Save in client credentials data structure new bearer token 
 			addClientCredentials(idClient, 
-									response_bearer_token->access_token,
-									response_bearer_token->refresh_token, 
-									response_bearer_token->ttl, 
-									&clients);
+							response_bearer_token->access_token,
+							response_bearer_token->refresh_token, 
+							response_bearer_token->ttl, 
+							&clients);
 			
 		} else {
 			
+			// Handle actions command such as "READ", "INSERT", etc...
 			ClientCredentials *credentials = getClientCredentials(idClient, clients);
 
+			// If ttl for a client that have request token, send a new request for a bearer token using refresh token 
 			if(credentials->ttl <= 0 && strlen(credentials->refresh_token) > 0){
 				char *old_refresh_token = credentials->refresh_token;
 				ResponseBearerToken  *response_bearer_token = request_new_bearer_token_1(&old_refresh_token, clnt);
 
+				// Update client credentials
 				addClientCredentials(idClient, 
 									response_bearer_token->access_token,
 									response_bearer_token->refresh_token, 
@@ -75,6 +81,7 @@ void oauth_prog_1(char *host, InputClient *inputClients, int nrInputs){
 									&clients);
 			}
 		
+			// Send action command to the server
 			ExecuteDatabaseAction execute_databese_action;
 			execute_databese_action.access_token = credentials->access_token;
 			execute_databese_action.action = input.command;
@@ -102,6 +109,7 @@ int main (int argc, char *argv[])
 	char* host = argv[1];
 	char* file = argv[2];
 
+	// Init data struct that save client input commands
 	InputClient* inputClients;
 	int nrInputs = readInputClientFile(file, &inputClients);
 	

@@ -1,7 +1,7 @@
 #include "utils.h"
 
-// Function get path of client input filename and create a struct that contains parsed information
-// It retunrs number of inputs
+// Function get path of client input filename and create a struct that contains parsed inputs client commands
+// It retunrs the number of inputs for client
 int readInputClientFile(char* filename, InputClient** inputs) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
@@ -44,6 +44,7 @@ int readInputClientFile(char* filename, InputClient** inputs) {
     return index;
 }
 
+// Function is use to add/update client credentials
 void addClientCredentials(char* id, char *access_token, char* refresh_token, int ttl, ClientCredentials **credentials){
 
     for(int i = 0; i < MAX_CLIENTS_ACCEPTED; i++){
@@ -67,6 +68,7 @@ void addClientCredentials(char* id, char *access_token, char* refresh_token, int
 
 }
 
+// Function is used to get client credentials 
 ClientCredentials *getClientCredentials(char *id, ClientCredentials *credentials){
 
     for(int i = 0; i < MAX_CLIENTS_ACCEPTED; i++){
