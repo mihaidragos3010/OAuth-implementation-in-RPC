@@ -48,6 +48,8 @@ bool isIdAllowed(char* idClient);
 bool isAcceptedByUsed(Permission* clientPermissions);
 void readResourceFiles(char *filename);
 
+bool isAuthTokenRecognized(char *auth_token);
+bool isRefreshTokenRecognized(char *refresh_token);
 bool isResourcesFile(char *file);
 bool isAccessTokenRecognized(char *access_token);
 bool isAccessTokenExpired(char *access_token);

@@ -58,7 +58,7 @@ ResponseSignedToken* request_signed_token_1_svc(char **argp, struct svc_req *rqs
 
 	Permission *clientPermissions = getNextPossiblePermission(permissions, nrPermissions);
 
-	if(isAcceptedByUsed(clientPermissions)){
+	if(isAcceptedByUsed(clientPermissions) && isAuthTokenRecognized(auth_token)){
 
 		result.header = strdup("SUCCESS");
 		char *unsigned_token = appendAuthTokenAndClientPermissions(auth_token, clientPermissions);
@@ -88,15 +88,21 @@ ResponseBearerToken* request_bearer_token_1_svc(char **argp, struct svc_req *rqs
 	Permission *clientPermissions;
 	int nr = getAuthTokenAndClientPermissions(unsigned_token, &auth_token, &clientPermissions);
 
-	result.access_token = generate_access_token(auth_token);
-	printf("  AccessToken = %s\n", result.access_token);
+	if(isAuthTokenRecognized(auth_token)){
 
-	if(isAutoRefreshTokenUser(auth_token)){
-		result.refresh_token = generate_access_token(result.access_token);
-		printf("  RefreshToken = %s\n", result.refresh_token);
+		result.access_token = generate_access_token(auth_token);
+		printf("  AccessToken = %s\n", result.access_token);
+
+		if(isAutoRefreshTokenUser(auth_token)){
+			result.refresh_token = generate_access_token(result.access_token);
+			printf("  RefreshToken = %s\n", result.refresh_token);
+		}
+		fflush(stdout);
+		saveBearerToken(auth_token, result.access_token, result.refresh_token, defaultTTL, clientPermissions);
+
+	}else{
+		result.header = strdup("NOT_ACCEPTED_AUTH_TOKEN");
 	}
-	fflush(stdout);
-	saveBearerToken(auth_token, result.access_token, result.refresh_token, defaultTTL, clientPermissions);
 
 	return &result;
 }
@@ -107,7 +113,7 @@ ResponseBearerToken* request_new_bearer_token_1_svc(char **argp, struct svc_req 
 	static ResponseBearerToken  result;
 
 	char *refresh_token = argp[0];
-	if(strlen(refresh_token) > 0){
+	if(isRefreshTokenRecognized(refresh_token)){
 		result.header = strdup("SUCCESS");
 		result.access_token = generate_access_token(refresh_token);
 		result.refresh_token = generate_access_token(result.access_token);

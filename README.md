@@ -1,31 +1,74 @@
-Name: Mihai Dragos-Adnrei
-Grupa: 342C5
+Name: Mihai Dragos-Andrei
+Group: 342C5
 
 
-    In cadrul acestei teme am avut de realizat un sistem de autentificare de tip OAuth2 utilizand protocolul RPC. 
-Sunt imlpementate 2 componente principale client si server. Clientul la initializare citeste un fisier de comenzi si initializeaza o structura interna pentru a salva viitoarele credentiale. Server-ul la initializare citeste fisierele primite ca argumente si initializeaza structuri interne, Structurile folosite de server sunt: "users" care retine credentialele fiecarui posibil viitor user, "resourcesFiles" contine toate fisierele server-ului si "permissions" este o matrice in care fiecare linie reprezinta un set de permisiuni. 
+# Implementation
 
-    In cadrul proiectului sunt 2 flow principale, autentificare si executia unei comenzi
+In this project, I implemented an OAuth2 authentication system using the RPC protocol.
+The implementation consists of two main components: the client and the server.
+Upon initialization, the client reads a command file and initializes an internal structure to store future credentials.
+The server, during initialization, reads the files provided as arguments and initializes internal structures.
+The server structures used are:
 
-    1. Autentificare
+- users: stores credentials for each potential user.
 
-        - Clientul trimite un requeste de authentificare in care adauga id sau si o valoare care identifica alegerea sa pentr auto refresh.
+- resourcesFiles: contains all the server files.
 
-        - Server verifica in baza sa de date daca clientul trimite un id recunoscut. In caz afirmativ raspunde cu un token de autentificare. In caz negativ raspunde cu un mesaj de "USER_NOT_FOUND".
+- permissions: a matrix where each row represents a set of permissions.
 
-        - Clientul trimite un request de permisiuni catre server pentru a obtine permisiuni.
 
-        - Server primeste token-ul de autentificare, si raspunde cu un signed_token. Signed token este construit prin alipirea auth_token cu permisiunile primite, acestea fiind separate de ",". Aceasta structura este criptata prin adunarea fiecarui caracter cu cheia secreta (key = 15). De exemplu, daca auth_token='123456789' si perms='Files' 'RX' atunci 
-        unsigned_token = '123456789,Files,RX', apoi aceasta structura va fi criptate si trimisa catre server. In cazul in care clientul nu primeste permisiuni '*,-", server-ul va trimite "REQUEST_DENIED".
+## The project implements two main flows: authentication and command execution
 
-        - Clientul trimmite signet_token pentru a obtine un bearer token.
+### 1.Authentication
 
-        - Serverul contruieste bearer token pe baza decriptarii signed token primit. Signed token este decriptate, descompus in auth token si permisiuni. Pe baza auth token acesta contruieste access token, refresh token(daca clientul a optat pentru el) si ttl.
+- The client sends an authentication request, including its ID and a value indicating its choice for auto-refresh.
 
-        - Clientul primeste bearer token si il salveaza local.
+- The server checks its database to see if the client sends a recognized ID. If the ID is valid, the server responds with an authentication token. Otherwise, it replies with a "USER_NOT_FOUND" message.
 
-    2. Executia unei comenzi
+- The client sends a permission request to the server to obtain permissions.
 
-        - Clientul trimite un request de executare a unei actiuni pe un fisier. Ataseaza si access token. In cazul in care refresh token nu este NULL si ttl a expirat acesta trimite un request de reinoire a bearer token, folosind refresh_token. 
+- The server receives the authentication token and responds with a signed token. The signed token is constructed by concatenating the auth_token with the permissions received, separated by a comma ,. This structure is then encrypted by adding a secret key (key = 15) to each character.
+For example, if auth_token='123456789' and perms='Files RX', then:
 
-        - Server-ul verifica valabiitatea cererii si trimite un raspuns.
+    * unsigned_token = '123456789,Files,RX'.
+
+    * This structure is encrypted and sent to the client. If the client does not receive any permissions (e.g., '*,-'), the server will send "REQUEST_DENIED".
+
+- The client sends the signed token to obtain a bearer token.
+
+- The server constructs the bearer token by decrypting the signed token received. The signed token is decrypted and split into the authentication token and permissions. Using the authentication token, the server constructs an access token, a refresh token (if requested by the client), and a TTL (time-to-live). These details are then saved in the users structure.
+
+- The client receives the bearer token and saves it locally.
+
+### 2. Command Execution
+
+- The client sends a request to execute an action on a file, attaching the access token. If the refresh token is not empty and the TTL has expired, it sends a request to renew the bearer token using the refresh token.
+
+- The server verifies the validity of the request and sends a response.
+
+
+## Running the Program
+
+Creating executables:
+    
+    make
+    
+Starting the server:
+    
+    ./server "userIDs.db" "approvals.db" "resources.db" default_ttl_value
+
+Starting the server with default settings:
+
+    make run_server
+
+Starting the client:
+
+    ./client ip_server "client.in"
+
+Starting the client with default settings:
+    
+    make run_client
+
+For testing, a script provided by the faculty was used:
+
+    ./check.sh all

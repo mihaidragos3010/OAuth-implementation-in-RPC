@@ -2,8 +2,8 @@
 all: build
 
 # Target to generate RPC code
-gen:
-	rpcgen -C -a oauth.x
+# gen:
+# 	rpcgen -C -a oauth.x
 
 # Target to compile the server and client
 build:

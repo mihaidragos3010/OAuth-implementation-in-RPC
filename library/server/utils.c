@@ -228,6 +228,33 @@ int getAuthTokenAndClientPermissions(char *unsigned_token, char** auth_token, Pe
     return index - 1;
 }
 
+// Check that the auth token is known by the server
+bool isAuthTokenRecognized(char *auth_token){
+
+    if(strlen(auth_token) > 0){
+        for(int i=0; i<nrUsers; i++){
+            if(strcmp(users[i].auth_token, auth_token) == 0)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+// Check that the refresh token is known by the server
+bool isRefreshTokenRecognized(char *refresh_token){
+
+    if(strlen(refresh_token) > 0){
+        for(int i=0; i<nrUsers; i++){
+            if(strcmp(users[i].refresh_token, refresh_token) == 0)
+                return true;
+        }
+    }
+
+    return false;
+
+}
+
 // Check that client id is recognized by be server 
 bool isIdAllowed(char* idClient){
 
